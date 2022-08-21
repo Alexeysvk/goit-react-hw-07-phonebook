@@ -1,32 +1,17 @@
 import { useState } from 'react';
-import s from './ContactForm.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { setItems } from 'redux/contactSlice';
-import { nanoid } from 'nanoid';
+import { addContacts, getContacts } from 'redux/phonebook/selectors';
+import { Notify } from 'notiflix';
+import s from './ContactForm.module.css';
 
 
 const ContactForm = () => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
   const dispatch = useDispatch();
-  const contacts = useSelector(state => state.contacts.items);
+  const contacts = useSelector(getContacts);
 
-
-  const handleContact = userData => {
-    let inputName = userData.name;
-    const isIncludesName = contacts.find(
-      contact => contact?.name?.toLowerCase() === inputName.toLowerCase()
-    );
-
-    if (isIncludesName) {
-      return alert(`${inputName} is already is contacts`);
-    }
-
-    const contact = { ...userData, id: nanoid() };
-    dispatch(setItems(contact));
-  };
-
-  const handleInputGange = e => {
+  const handleChange = e => {
     const { name, value } = e.currentTarget;
 
     switch (name) {
@@ -41,21 +26,23 @@ const ContactForm = () => {
     }
   };
 
-  const onSubmitHandler = e => {
+  const formSubmit = e => {
     e.preventDefault();
-
-    handleContact({ name, number });
-
-    reset();
-  };
-
-  const reset = () => {
-    setName('');
-    setNumber('');
+    const repeatName = contacts.find(contact => {
+      return contact.name.toLowerCase() === name.toLowerCase();
+    });
+    if (!repeatName) {
+      Notify.success(`${name} is added in contacts`);
+      dispatch(addContacts({ name, number }));
+      setNumber('');
+      setName('');
+      return;
+    }
+    Notify.warning(`${name} is already in contacts`);
   };
 
   return (
-    <form onSubmit={onSubmitHandler} className={s.formWrap}>
+    <form onSubmit={formSubmit} className={s.formWrap}>
       <label className={s.inputWrap}>
         <span className={s.label}>Name</span>
         <input
@@ -65,7 +52,7 @@ const ContactForm = () => {
           pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
-          onChange={handleInputGange}
+          onChange={handleChange}
           value={name}
         />
       </label>
@@ -78,7 +65,7 @@ const ContactForm = () => {
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required
-          onChange={handleInputGange}
+          onChange={handleChange}
           value={number}
         />
       </label>

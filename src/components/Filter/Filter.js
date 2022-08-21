@@ -1,15 +1,16 @@
 import s from './Filter.module.css';
-
 import { useDispatch, useSelector } from 'react-redux';
-import { setFilter } from 'redux/contactSlice';
+import { getFilter } from 'redux/phonebook/selectors';
+import { filterChangeAction } from 'redux/phonebook/actions';
+
+
 
 const Filter = () => {
   const dispatch = useDispatch();
-  const filter = useSelector(state => state.contacts.filter);
+  const value = useSelector(getFilter);
+  const onFilterChange = e =>
+    dispatch(filterChangeAction(e.target.value));
 
-  const handleFilterChange = e => {
-    dispatch(setFilter(e.target.value));
-  };
 
   return (
     <div className={s.filterWrap}>
@@ -18,8 +19,8 @@ const Filter = () => {
         <input
           type="text"
           name="filter"
-          onChange={handleFilterChange}
-          value={filter}
+          onChange={onFilterChange}
+          value={value}
           className={s.input}
         />
       </label>
